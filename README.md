@@ -34,15 +34,17 @@ personal-gemini-journal/
 ### Bước 1: Chạy Backend Server
 Mở terminal 1:
 ```bash
-cd "d:\01_Work_Active\Programming AI\personal-gemini-journal\server"
+cd server
+npm install
 npm run dev
 ```
-Server sẽ khởi chạy tại `http://localhost:4000`.
+Server sẽ khởi chạy tại `http://localhost:4000` (hoặc `http://localhost:8080`).
 
 ### Bước 2: Chạy Frontend Client
 Mở terminal 2:
 ```bash
-cd "d:\01_Work_Active\Programming AI\personal-gemini-journal\client"
+cd client
+npm install
 npm run dev
 ```
 Giao diện sẽ hiển thị tại `http://localhost:5173`.
