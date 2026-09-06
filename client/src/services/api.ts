@@ -23,7 +23,7 @@ export interface Journal {
   updatedAt: string;
 }
 
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '/api' : 'http://localhost:8080/api';
 
 export async function fetchJournals(idToken: string): Promise<Journal[]> {
   const res = await fetch(`${API_BASE}/journals`, {
