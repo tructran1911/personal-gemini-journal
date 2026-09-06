@@ -32,7 +32,7 @@ export async function fetchJournals(idToken: string): Promise<Journal[]> {
       'Content-Type': 'application/json',
     },
   });
-  if (!res.ok) throw new Error('Không thể tải nhật ký. Trạng thái: ' + res.status);
+  if (!res.ok) throw new Error('Failed to fetch journals. HTTP status: ' + res.status);
   const data = await res.json();
   return data.data;
 }
@@ -50,7 +50,7 @@ export async function createJournal(
     },
     body: JSON.stringify({ title, content }),
   });
-  if (!res.ok) throw new Error('Lỗi khi tạo nhật ký. Trạng thái: ' + res.status);
+  if (!res.ok) throw new Error('Failed to create journal. HTTP status: ' + res.status);
   const data = await res.json();
   return data.data;
 }
@@ -68,6 +68,6 @@ export async function sendChatMessage(
     },
     body: JSON.stringify({ message }),
   });
-  if (!res.ok) throw new Error('Lỗi gửi tin nhắn tới Gemini: ' + res.status);
+  if (!res.ok) throw new Error('Failed to send message to Gemini. HTTP status: ' + res.status);
   return await res.json();
 }

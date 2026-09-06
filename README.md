@@ -1,66 +1,71 @@
-# PERSONAL GEMINI JOURNAL — SETUP & DEMO GUIDE
-**Mục tiêu**: Hướng dẫn khởi chạy và kiểm thử kiến trúc bảo mật toàn diện của ứng dụng Personal Gemini Journal.
+# PERSONAL GEMINI JOURNAL — SETUP & ARCHITECTURE GUIDE
+**Project**: Secure Personal Gemini Journal  
+**Track**: Ideathon Challenge (Cloud Run AI Challenge)  
+**Security Posture**: Enterprise Zero-Trust Defense-in-Depth
 
 ---
 
-## 1. Cấu trúc Thư mục Dự án
+## 1. Project Directory Structure
 ```
 personal-gemini-journal/
 ├── .gemini/
-│   └── ai_studio_constitution.md       # Hiến pháp an ninh cho AI Studio
+│   └── ai_studio_constitution.md       # Google AI Studio Security Constitution
 ├── security/
-│   ├── firestore.rules                 # Quy tắc Firestore cô lập dữ liệu
-│   └── threat_model.md                 # Phân tích đe dọa chuẩn STRIDE & OWASP LLM
-├── server/                             # Backend API bảo mật (Express + TypeScript)
+│   ├── firestore.rules                 # Cloud Firestore tenant-isolation security rules
+│   └── threat_model.md                 # STRIDE Threat Model & OWASP Top 10 for LLMs
+├── server/                             # Production Express Backend (TypeScript)
 │   ├── src/
-│   │   ├── config/secrets.ts           # GCP Secret Manager Loader
-│   │   ├── middleware/auth.ts          # Firebase Admin JWT Validator
-│   │   ├── services/gemini.ts          # Gemini Client (Multi-turn + Auto-Tagging)
-│   │   ├── services/firestore.ts       # Database Partitioning theo User UID
-│   │   ├── routes/journal.ts           # REST Endpoints
-│   │   └── isolation.test.ts           # Unit test kiểm chứng Zero Data Leakage
-├── client/                             # Frontend React (TypeScript + Vite)
+│   │   ├── config/secrets.ts           # Google Cloud Secret Manager Loader
+│   │   ├── middleware/auth.ts          # Firebase Admin Cryptographic JWT Validator
+│   │   ├── services/gemini.ts          # Gemini Client (Multi-turn & Auto-Tagging)
+│   │   ├── services/firestore.ts       # UID-partitioned isolated database service
+│   │   ├── routes/journal.ts           # REST Endpoints (/api/journals)
+│   │   └── isolation.test.ts           # Automated Unit Test for Zero Data Leakage
+├── client/                             # Modern Vite React Frontend (TypeScript + Vanilla CSS)
 │   ├── src/
-│   │   ├── components/Auth/            # Switcher mô phỏng Multi-user Isolation
-│   │   ├── components/Journal/         # Giao diện viết nhật ký, tags & multi-turn chat
-│   │   ├── styles/theme.css            # Vanilla CSS tinh tế, responsive
-│   │   └── services/api.ts             # REST Client với Bearer Authorization
+│   │   ├── components/Auth/            # Zero-Trust Multi-user Isolation Switcher
+│   │   ├── components/Journal/         # Journaling, Semantic Filter, and Multi-turn Chat
+│   │   ├── styles/theme.css            # Curated Modern HSL Design System
+│   │   └── services/api.ts             # REST Client with Bearer Token Authorization
+├── Dockerfile                          # Multi-stage build for Google Cloud Run
+└── README.md
 ```
 
 ---
 
-## 2. Cách Chạy Ứng Dụng (Local Development)
+## 2. Running the Application Locally
 
-### Bước 1: Chạy Backend Server
-Mở terminal 1:
+### Step 1: Run the Backend Server
+Open Terminal 1:
 ```bash
 cd server
 npm install
 npm run dev
 ```
-Server sẽ khởi chạy tại `http://localhost:4000` (hoặc `http://localhost:8080`).
+The server will start on `http://localhost:8080` (or `http://localhost:4000`).
 
-### Bước 2: Chạy Frontend Client
-Mở terminal 2:
+### Step 2: Run the Frontend Client
+Open Terminal 2:
 ```bash
 cd client
 npm install
 npm run dev
 ```
-Giao diện sẽ hiển thị tại `http://localhost:5173`.
+The frontend interface will be available at `http://localhost:5173`.
 
 ---
 
-## 3. Các Điểm Kiểm Thử Trọng Yếu (Evaluation Points)
-1. **Google AI Studio Constitution**: Xem tài liệu [`ai_studio_constitution.md`](.gemini/ai_studio_constitution.md) để nạp vào mục System Instructions trên Google AI Studio.
-2. **Zero Cross-User Leakage**: 
-   - Đăng nhập với tài khoản **Alice**, tạo một nhật ký.
-   - Nhấn nút "Chuyển nhanh sang Bob", đăng nhập với tài khoản **Bob**. Toàn bộ dữ liệu của Alice biến mất hoàn toàn, danh sách bài viết của Bob là một không gian độc lập.
-3. **Secret Security**:
-   - Mở DevTools Network Tab trên trình duyệt: Không hề có bất kỳ API key nào được gửi qua mạng hay lưu trong mã nguồn frontend. Khóa được quản lý hoàn toàn ở server qua GCP Secret Manager.
+## 3. Core Challenge Verification Highlights
+
+1. **Google AI Studio Constitution**:
+   - Inspect [`.gemini/ai_studio_constitution.md`](.gemini/ai_studio_constitution.md) for custom instructions that configure Gemini as an Application Security Engineer before writing code.
+2. **Zero Cross-User Data Leakage**:
+   - Sign in as **Alice**, create a private journal.
+   - Click "Switch to Bob" to log in as **Bob**. Alice's logs vanish completely; Bob operates in a strictly partitioned database workspace.
+   - Verified programmatically via automated tests: `cd server && npx ts-node src/isolation.test.ts`.
+3. **Secret Management**:
+   - Inspect browser Network tab: Zero API keys are transmitted to or stored on the client. Keys are retrieved exclusively via Google Cloud Secret Manager.
 4. **Original Feature Enhancement**:
-   - Ngay khi lưu bài viết hoặc trò chuyện đa lượt, Gemini kích hoạt bộ máy **"AI Emotional Weather & Semantic Intelligence"** trích xuất:
-     - Mood (Sắc thái tâm lý đa chiều)
-     - Energy Level (Mức năng lượng)
-     - Semantic Tags (Thẻ chủ đề để lọc bài viết ở sidebar)
-     - Actionable Mindfulness Prompt (Câu hỏi chiêm nghiệm gợi mở)
+   - **"AI Emotional Weather & Semantic Intelligence"**: Gemini dynamically extracts nuanced Mood, Energy Level, Semantic Hashtags for sidebar filtering, and an actionable Mindfulness Reflection prompt.
+5. **Production Cloud Run Container**:
+   - Includes a production-ready multi-stage `Dockerfile` serving both the compiled frontend and backend on port `8080`.

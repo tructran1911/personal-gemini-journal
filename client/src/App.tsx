@@ -22,7 +22,7 @@ export const App: React.FC = () => {
         setActiveJournalId(data[0].id);
       }
     } catch (err) {
-      console.error('Lỗi khi tải nhật ký:', err);
+      console.error('Failed to load journals:', err);
     }
   }, [user, activeJournalId, isCreatingNew]);
 
@@ -38,7 +38,7 @@ export const App: React.FC = () => {
   }, [user]);
 
   if (loading) {
-    return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Đang tải...</div>;
+    return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>;
   }
 
   if (!user) {
@@ -54,7 +54,7 @@ export const App: React.FC = () => {
       setActiveJournalId(created.id);
       setIsCreatingNew(false);
     } catch (err) {
-      alert('Lỗi tạo nhật ký: ' + (err instanceof Error ? err.message : String(err)));
+      alert('Error creating journal: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -63,10 +63,9 @@ export const App: React.FC = () => {
     setSendingMessage(true);
     try {
       const res = await sendChatMessage(user.idToken, activeJournalId, text);
-      // Cập nhật lại state của nhật ký hiện tại
       setJournals(prev => prev.map(j => (j.id === activeJournalId ? res.journal : j)));
     } catch (err) {
-      alert('Lỗi khi trò chuyện với Gemini: ' + (err instanceof Error ? err.message : String(err)));
+      alert('Error communicating with Gemini: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSendingMessage(false);
     }
@@ -90,11 +89,11 @@ export const App: React.FC = () => {
             style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
             onClick={() => signInMock(user.uid.includes('alice') ? 'bob' : 'alice')}
           >
-            Chuyển nhanh sang {user.uid.includes('alice') ? 'Bob' : 'Alice'}
+            Switch to {user.uid.includes('alice') ? 'Bob' : 'Alice'}
           </button>
 
           <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }} onClick={signOut}>
-            Đăng xuất
+            Sign Out
           </button>
         </div>
       </header>

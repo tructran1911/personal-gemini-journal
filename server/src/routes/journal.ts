@@ -5,7 +5,7 @@ import { processJournalConversation } from '../services/gemini';
 
 const router = Router();
 
-// Lấy danh sách nhật ký của người dùng hiện tại
+// Retrieve all journals for the authenticated user
 router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.uid;
@@ -17,7 +17,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> 
   }
 });
 
-// Tạo nhật ký mới kèm tương tác khởi tạo từ Gemini
+// Create a new journal entry with initial Gemini cognitive analysis
 router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.uid;
@@ -28,20 +28,20 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
       return;
     }
 
-    // Phân tích và tương tác với Gemini
+    // Call Gemini with constitution guardrails
     let aiResponse;
     try {
       aiResponse = await processJournalConversation([], content);
     } catch (e) {
-      console.warn('[JournalRoute] Gemini processing error:', e);
+      console.warn('[JournalRoute] Gemini processing fallback:', e);
       aiResponse = {
-        reply: 'Ghi chú đã được lưu bảo mật. (AI reflection hiện chưa khả dụng do thiếu API key).',
+        reply: 'Journal saved securely. (AI reflection is currently operating in offline mode).',
         analysis: {
           mood: 'Reflective',
           energyLevel: 'Medium' as const,
-          keywords: ['journal', 'daily-thought'],
+          keywords: ['journal', 'daily-reflection'],
           summary: title,
-          mindfulnessPrompt: 'Hôm nay điều gì khiến bạn cảm thấy bình yên nhất?'
+          mindfulnessPrompt: 'What brought you the greatest sense of calm or focus today?'
         }
       };
     }
@@ -63,7 +63,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
   }
 });
 
-// Trò chuyện đa lượt (Multi-turn ongoing conversation) với Gemini trong một trang nhật ký
+// Multi-turn ongoing conversation with Gemini inside a journal entry
 router.post('/:journalId/chat', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.uid;
@@ -75,14 +75,14 @@ router.post('/:journalId/chat', async (req: AuthenticatedRequest, res: Response)
       return;
     }
 
-    // Kiểm tra quyền sở hữu bài viết
+    // Verify journal ownership
     const existingJournal = await getJournalById(userId, journalId);
     if (!existingJournal) {
       res.status(404).json({ error: 'Not Found', message: 'Journal not found or access denied.' });
       return;
     }
 
-    // Định dạng lịch sử trò chuyện cho Gemini
+    // Format chat history for Gemini API
     const history = (existingJournal.turns || []).map(turn => ({
       role: turn.role,
       parts: [{ text: turn.content }]
@@ -92,9 +92,9 @@ router.post('/:journalId/chat', async (req: AuthenticatedRequest, res: Response)
     try {
       aiResult = await processJournalConversation(history, message);
     } catch (e) {
-      console.warn('[JournalChat] Gemini call failed:', e);
+      console.warn('[JournalChat] Gemini call fallback:', e);
       aiResult = {
-        reply: 'Tôi đang lắng nghe bạn. Hãy tiếp tục chia sẻ suy nghĩ nhé.',
+        reply: 'I am listening to your thoughts. Feel free to continue reflecting.',
       };
     }
 

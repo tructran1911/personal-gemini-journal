@@ -2,43 +2,43 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Hàm trợ giúp kiểm tra xác thực người dùng
+    // Helper: Check if request is authenticated
     function isAuthenticated() {
       return request.auth != null && request.auth.uid != null;
     }
     
-    // Hàm trợ giúp kiểm tra quyền sở hữu tài nguyên
+    // Helper: Check ownership of target user document
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // MẶC ĐỊNH CHẶN TẤT CẢ (Default Deny)
+    // DEFAULT DENY: Reject all unspecified access
     match /{document=**} {
       allow read, write: if false;
     }
     
-    // CÔ LẬP DỮ LIỆU TUYỆT ĐỐI THEO USER ID
-    // Đường dẫn: /users/{userId}
+    // STRICT TENANT ISOLATION BY USER ID
+    // Path: /users/{userId}
     match /users/{userId} {
       allow read, write: if isOwner(userId);
       
-      // Nhật ký của từng người dùng: /users/{userId}/journals/{journalId}
+      // Journal entries: /users/{userId}/journals/{journalId}
       match /journals/{journalId} {
-        // Chỉ người sở hữu tài khoản mới có quyền đọc và xóa
+        // Only the document owner can read or delete
         allow read, delete: if isOwner(userId);
         
-        // Khi tạo mới: bắt buộc userId trên document phải khớp với auth.uid
+        // Creation validation: payload userId must match auth.uid
         allow create: if isOwner(userId)
           && request.resource.data.userId == userId
           && request.resource.data.title is string
           && request.resource.data.content is string
           && request.resource.data.createdAt != null;
           
-        // Khi cập nhật: không được phép sửa đổi userId ban đầu
+        // Update validation: owner cannot alter original userId
         allow update: if isOwner(userId)
           && request.resource.data.userId == resource.data.userId;
 
-        // Các lượt hội thoại AI kèm theo mỗi nhật ký: /users/{userId}/journals/{journalId}/turns/{turnId}
+        // Multi-turn conversation logs: /users/{userId}/journals/{journalId}/turns/{turnId}
         match /turns/{turnId} {
           allow read, write: if isOwner(userId);
         }

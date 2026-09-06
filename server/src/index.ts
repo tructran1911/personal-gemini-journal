@@ -9,28 +9,28 @@ import journalRoutes from './routes/journal';
 
 dotenv.config();
 
-// Khởi tạo Firebase Admin SDK
+// Initialize Firebase Admin SDK
 initializeFirebaseAdmin(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Cấu hình Bảo vệ HTTP Headers (Helmet)
+// Configure Helmet HTTP Security Headers
 app.use(helmet({
-  contentSecurityPolicy: false // Phục vụ SPA frontend tĩnh an toàn trên Cloud Run
+  contentSecurityPolicy: false // Allows hosting Vite SPA frontend securely on Cloud Run
 }));
 
-// Giới hạn tần suất gọi API (Rate Limiter) - Phòng chống DoS & Brute Force
+// Rate Limiter - Defense against Denial of Service and Brute-force attacks
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 phút
-  max: 60, // Tối đa 60 requests/phút mỗi IP
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 60, // Maximum 60 requests per minute per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too Many Requests', message: 'Tần suất gửi yêu cầu quá nhanh, vui lòng thử lại sau giây lát.' }
+  message: { error: 'Too Many Requests', message: 'Request quota exceeded. Please wait a moment.' }
 });
 app.use('/api/', apiLimiter);
 
-// Cấu hình CORS
+// Configure CORS
 app.use(cors({
   origin: true,
   credentials: true,
@@ -40,7 +40,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '1mb' }));
 
-// Health check endpoint cho Cloud Run Liveness/Readiness Probes
+// Health check endpoint for Cloud Run Liveness and Readiness probes
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -51,10 +51,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Gắn middleware xác thực cho tất cả routes nhật ký
+// Guard journal routes with Firebase JWT Authentication
 app.use('/api/journals', requireAuth as any, journalRoutes);
 
-// Phục vụ tệp tĩnh React Frontend khi triển khai trên Cloud Run (Single Container Monolith)
+// Serve static React SPA on Google Cloud Run (Single-container deployment)
 const publicDir = path.join(__dirname, '../public');
 app.use(express.static(publicDir));
 
